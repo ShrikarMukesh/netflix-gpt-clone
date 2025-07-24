@@ -1,9 +1,9 @@
 const Header = () => {
   return (
-    <div className="p-4 bg-black bg-opacity-60 flex items-center">
+    <div className="absolute px-8 py-2 bg-gradient-to-b form-black z-10">
       <img
-        className="w-28 h-auto"
-        src="https://images.seeklogo.com/logo-png/45/1/netflix-logo-png_seeklogo-451981.png"
+        className="w-44"
+        src="https://images.ctfassets.net/y2ske730sjqp/821Wg4N9hJD8vs5FBcCGg/9eaf66123397cc61be14e40174123c40/Vector__3_.svg?w=460"
         alt="Logo"
       />
     </div>
