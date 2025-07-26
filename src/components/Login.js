@@ -1,11 +1,36 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "./Header";
 import { checkValidData } from "../utils/validate";
+import { auth } from "../utils/firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
+/*
+ * Login Component
+ * Handles user authentication for both sign-in and sign-up
+ * Allows toggling between sign-in and sign-up forms
+ * Validates user input and displays error messages
+ * Uses Firebase Authentication for user management
+ * @returns {JSX.Element} Rendered Login component
+ */
 const Login = () => {
   // Function to handle sign-up form toggle
   const [isSignInForm, setIsSignInForm] = useState(true);
+  // State to manage error messages
+  // and references for email, password, and name inputs
   const [errorMessage, setErrorMessage] = useState(null);
+  // useNavigate hook to programmatically navigate
+  // between routes in the application
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  // Refs for form inputs
+  // Using useRef to avoid unnecessary re-renders and to directly access DOM elements
   const email = useRef(null);
   const password = useRef(null);
   const name = useRef(null);
@@ -18,13 +43,76 @@ const Login = () => {
     //checkValidData(email, password);
     console.log(email.current.value);
     console.log(password.current.value);
-    console.log(name.current.value);
     const message = checkValidData(
       email.current.value,
       password.current.value,
-      name.current.value ? name.current.value : null
+      !isSignInForm && name.current ? name.current.value : null
     );
     setErrorMessage(message);
+
+    // Sign Up Logic
+    if (!isSignInForm) {
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          console.log(user);
+          updateProfile(user, {
+            displayName: name.current.value,
+            photoURL: "https://avatars.githubusercontent.com/u/46884233?v=4",
+          })
+            .then(() => {
+              const { uid, email, displayName, photoURL } = auth.currentUser;
+              // Profile updated successfully
+              dispatch(
+                addUser({
+                  uid: uid,
+                  email: email,
+                  displayName: displayName,
+                  photoURL:
+                    photoURL ||
+                    "https://avatars.githubusercontent.com/u/46884233?v=4",
+                })
+              );
+              navigate("/browse");
+            })
+            .catch((error) => {
+              setErrorMessage(error.message);
+            });
+          navigate("/browse");
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + " " + errorMessage);
+          // ..
+        });
+    } else {
+      // Sign In Logic
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/browse");
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.log(errorCode, errorMessage);
+          setErrorMessage(errorCode + " " + errorMessage);
+        });
+    }
   };
 
   return (

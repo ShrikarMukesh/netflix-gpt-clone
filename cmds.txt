@@ -3,3 +3,10 @@ npm install firebase
 npm install -g firebase-tools
 
 firebase login
+
+npm build
+firebase deploy
+
+npm i -D @reduxjs/toolkit
+
+npm i react-redux
